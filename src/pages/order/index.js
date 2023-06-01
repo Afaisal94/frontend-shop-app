@@ -6,12 +6,28 @@ import { Gap, Header, Title } from "@/components";
 import { getOrders, deleteOrder } from "@/hooks/useOrder";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-import Script from "next/script";
+import { Snap } from "midtrans-client";
 
 function Order() {
   const router = useRouter();
   const [user, setUser] = useState("");
   const queryClient = useQueryClient();
+
+  const paymentRequest = {
+    transaction_details: {
+      order_id: "ORDER123",
+      gross_amount: 10000,
+    },
+    credit_card: {
+      secure: true,
+    },
+  };
+
+  const snap = new Snap({
+    isProduction: false,
+    serverKey: "SB-Mid-server-CXazCvDS8ICzN6bALgs9tCEg",
+    clientKey: "SB-Mid-client-BvFb3TRROqvbGzFf",
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -45,7 +61,16 @@ function Order() {
     });
   };
 
-  const handlePayment = async () => {};
+  const handlePayment = async () => {
+    snap
+      .createTransaction(paymentRequest)
+      .then((transactionToken) => {
+        snap.pay(transactionToken.token);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   return (
     <>
@@ -122,10 +147,6 @@ function Order() {
         </Row>
         <Gap />
       </Container>
-      <Script
-        src="https://app.sandbox.midtrans.com/snap/snap.js"
-        data-client-key="SB-Mid-client-BvFb3TRROqvbGzFf"
-      />
     </>
   );
 }
