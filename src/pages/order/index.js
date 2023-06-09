@@ -3,31 +3,14 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { Table, Col, Container, Row, Button } from "react-bootstrap";
 import { Gap, Header, Title } from "@/components";
-import { getOrders, deleteOrder } from "@/hooks/useOrder";
+import { getOrders, deleteOrder, getPaymentLink } from "@/hooks/useOrder";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-import { Snap } from "midtrans-client";
 
 function Order() {
   const router = useRouter();
   const [user, setUser] = useState("");
   const queryClient = useQueryClient();
-
-  const paymentRequest = {
-    transaction_details: {
-      order_id: "ORDER123",
-      gross_amount: 10000,
-    },
-    credit_card: {
-      secure: true,
-    },
-  };
-
-  const snap = new Snap({
-    isProduction: false,
-    serverKey: "SB-Mid-server-CXazCvDS8ICzN6bALgs9tCEg",
-    clientKey: "SB-Mid-client-BvFb3TRROqvbGzFf",
-  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -61,15 +44,11 @@ function Order() {
     });
   };
 
-  const handlePayment = async () => {
-    snap
-      .createTransaction(paymentRequest)
-      .then((transactionToken) => {
-        snap.pay(transactionToken.token);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  const handlePayment = async (id) => {
+    getPaymentLink(id).then((response) => {
+      console.log(response);
+      window.open(response, "_blank");
+    });
   };
 
   return (
@@ -113,7 +92,7 @@ function Order() {
                         size="sm"
                         className="m-1"
                         onClick={() => {
-                          handlePayment();
+                          handlePayment(order._id);
                         }}
                       >
                         Pay Now

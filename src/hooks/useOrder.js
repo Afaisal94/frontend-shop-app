@@ -46,4 +46,9 @@ const deleteOrder = async (id) => {
   return id;
 };
 
-export { getOrders, getOrderById, createOrder, deleteOrder };
+const getPaymentLink = async (id) => {
+  const response = await axios.get(`${API_URL}/orders/midtrans/${id}`);
+  return response.data;
+};
+
+export { getOrders, getOrderById, createOrder, deleteOrder, getPaymentLink };
